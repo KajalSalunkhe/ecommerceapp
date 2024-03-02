@@ -1,0 +1,98 @@
+import 'dart:io';
+
+import 'package:ecommerceapp/constants/constants.dart';
+import 'package:ecommerceapp/models/user_model/user_model.dart';
+import 'package:ecommerceapp/provider/app_provider.dart';
+import 'package:ecommerceapp/widgets/primary_button/primary_button.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
+
+class EditProfile extends StatefulWidget {
+  const EditProfile({super.key});
+
+  @override
+  State<EditProfile> createState() => _EditProfileState();
+}
+
+class _EditProfileState extends State<EditProfile> {
+  File? image;
+  void takePicture() async {
+    XFile? value = await ImagePicker()
+        .pickImage(source: ImageSource.gallery, imageQuality: 40);
+    if (value != null) {
+      setState(() {
+        image = File(value.path);
+      });
+    }
+  }
+
+  TextEditingController nameContoller = TextEditingController();
+
+  @override
+  Widget build(BuildContext context) {
+    AppProvider appProvider = Provider.of<AppProvider>(context);
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        title: Text(
+          "Profile",
+          style: TextStyle(
+            color: Colors.black,
+          ),
+        ),
+      ),
+      body: ListView(
+        padding: EdgeInsets.symmetric(horizontal: 20),
+        children: [
+          image == null
+              ? CupertinoButton(
+                  onPressed: () {
+                    takePicture();
+                  },
+                  child: CircleAvatar(
+                    radius: 70,
+                    child: Icon(Icons.camera_alt),
+                  ),
+                )
+              : CupertinoButton(
+                  onPressed: () {
+                    takePicture();
+                  },
+                  child: CircleAvatar(
+                    radius: 70,
+                    // child:
+                    //  Icon(Icons.camera_alt),
+                    backgroundImage: FileImage(image!),
+                  ),
+                ),
+          SizedBox(
+            height: 12,
+          ),
+          TextFormField(
+            controller: nameContoller,
+            decoration: InputDecoration(
+              hintText: appProvider.getUserInformation.name,
+            ),
+          ),
+          SizedBox(
+            height: 24,
+          ),
+          PrimaryButton(
+            onPressed: () async {
+              UserModel userModel = appProvider.getUserInformation
+                  .copyWith(name: nameContoller.text);
+              appProvider.updateUserInfoFirebase(context, userModel, image);
+              // String imageUrl =
+              //     await FirebaseStorageHelper.instance.uploadUserImage(image!);
+              print("hello");
+              // print(imageUrl);
+            },
+            title: "Update",
+          )
+        ],
+      ),
+    );
+  }
+}
